@@ -1,0 +1,39 @@
+name: Build Vela RPK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:  # 手动触发按钮
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install aiot-toolkit globally
+        run: npm install -g aiot-toolkit
+
+      - name: Install dependencies if package.json exists
+        run: |
+          if [ -f package.json ]; then
+            npm install
+          else
+            echo "No package.json found, skipping install"
+          fi
+
+      - name: Build debug RPK
+        run: aiot build --devtool=source-map   # 加 source-map 方便调试
+
+      - name: Upload RPK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vela-rpk-debug
+          path: dist/*.rpk
+          retention-days: 7
